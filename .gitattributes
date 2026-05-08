@@ -1,0 +1,2 @@
+finetuned_models/ filter=lfs diff=lfs merge=lfs -text
+finetuned_models/** filter=lfs diff=lfs merge=lfs -text
