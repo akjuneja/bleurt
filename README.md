@@ -1,3 +1,103 @@
+## MD-BLEURT: Multidimensional BLEURT for Medical Text Evaluation
+
+This fork extends BLEURT to support **multidimensional semantic evaluation** for medical text. Unlike standard BLEURT, which outputs a single similarity score, MD-BLEURT predicts separate similarity scores across multiple semantic dimensions:
+
+- Entity consistency
+- Relation consistency
+- Temporal consistency
+- Factuality consistency
+
+MD-BLEURT is designed for evaluating medical text generation, where small semantic changes can have important clinical implications. The model is trained using controlled medical sentence-pair variations, including paraphrases and meaning-altering perturbations.
+
+### Key Differences from BLEURT
+
+| Model | Output | Focus |
+|---|---|---|
+| BLEURT | Single similarity score | General NLG evaluation |
+| MD-BLEURT | Multiple dimension-specific scores | Medical semantic consistency |
+
+---
+
+Please follow the original BLEURT installation instructions before using the MD-BLEURT checkpoints.
+
+## Download Checkpoints
+
+```bash
+wget "https://anonymous-hf.up.railway.app/api/a/nyf7cyxulnaz/download/" -O repo.zip
+
+unzip repo.zip -d anonymous_repo
+```
+
+We release two MD-BLEURT checkpoints:
+
+| Model | Training Data |
+|---|---|
+| `multihead_mixed_single_paraphrase_vector_score` | MedVariation Version 1 |
+| `multihead_mixed_complete_paraphrase_vector_score` | MedVariation Version 2 |
+
+---
+
+## Example Usage
+
+```python
+from bleurt import score_vector
+
+
+Version 1 checkpoint
+checkpoint = (
+    "anonymous_repo/"
+    "finetuned_models/"
+    "multihead_mixed_single_paraphrase_vector_score/"
+    "bleurt_best_all_heads"
+)
+
+# # Version 2 checkpoint
+# checkpoint = (
+#     "anonymous_repo/"
+#     "finetuned_models/"
+#     "multihead_mixed_complete_paraphrase_vector_score/"
+#     "bleurt_best_all_heads"
+# )
+
+
+references = [
+    "The patient's ultrasound showed a deep vein thrombosis in the left popliteal vein. He was started on an anticoagulant."
+]
+
+candidates = [
+    "The patient's ultrasound showed a deep vein thrombosis in the right popliteal vein. He was started on an anticoagulant."
+]
+
+scorer = score_vector.BleurtScorer(checkpoint)
+
+scores = scorer.score(
+    references=references,
+    candidates=candidates
+)
+
+print(scores)
+```
+
+### Example Output
+
+```python
+[0.496142, 0.917111, 1.021596, 1.019298]
+```
+
+The output corresponds to:
+
+```python
+{
+    "entity": 0.496142,
+    "relation": 0.917111,
+    "temporal": 1.021596,
+    "factuality": 1.019298
+}
+```
+
+In this example, the lower entity score reflects the semantic inconsistency introduced by changing the anatomical location from *left* to *right*.
+
+
 # BLEURT: a Transfer Learning-Based Metric for Natural Language Generation
 
 BLEURT is an evaluation metric for Natural Language Generation. It takes a pair of sentences as input, a *reference* and a *candidate*, and it returns a score that indicates to what extent the candidate is fluent and conveys the meaning of the reference. It is comparable to [`sentence-BLEU`](https://en.wikipedia.org/wiki/BLEU), [`BERTscore`](https://arxiv.org/abs/1904.09675), and [`COMET`](https://github.com/Unbabel/COMET).
